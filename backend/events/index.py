@@ -74,8 +74,9 @@ def handle_get_events(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, 
     
     if event_id:
         cur.execute("""
-            SELECT e.id, e.title, e.type, e.date, e.time, e.end_time, e.location, 
-                   e.vks_link, e.description, e.status, e.created_at, e.updated_at
+            SELECT e.id, e.title, e.type, e.date, e.time, e.end_time, e.end_date,
+                   e.location, e.vks_link, e.description, e.status, e.region_name,
+                   e.is_multi_day, e.created_at, e.updated_at
             FROM events e
             WHERE e.id = %s
         """, (event_id,))
@@ -113,15 +114,18 @@ def handle_get_events(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, 
             'title': event_data[1],
             'type': event_data[2],
             'date': event_data[3].isoformat(),
-            'time': str(event_data[4]),
+            'time': str(event_data[4]) if event_data[4] else None,
             'endTime': str(event_data[5]) if event_data[5] else None,
-            'location': event_data[6],
-            'vksLink': event_data[7],
-            'description': event_data[8],
-            'status': event_data[9],
+            'endDate': event_data[6].isoformat() if event_data[6] else None,
+            'location': event_data[7],
+            'vksLink': event_data[8],
+            'description': event_data[9],
+            'status': event_data[10],
+            'regionName': event_data[11],
+            'isMultiDay': event_data[12],
             'responsible': responsible,
             'reminders': reminders,
-            'createdAt': event_data[10].isoformat()
+            'createdAt': event_data[13].isoformat()
         }
         
         cur.close()
@@ -134,8 +138,9 @@ def handle_get_events(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, 
         }
     
     cur.execute("""
-        SELECT e.id, e.title, e.type, e.date, e.time, e.end_time, e.location, 
-               e.vks_link, e.description, e.status, e.created_at, e.updated_at
+        SELECT e.id, e.title, e.type, e.date, e.time, e.end_time, e.end_date,
+               e.location, e.vks_link, e.description, e.status, e.region_name,
+               e.is_multi_day, e.created_at, e.updated_at
         FROM events e
         ORDER BY e.date DESC, e.time DESC
     """)
@@ -166,15 +171,18 @@ def handle_get_events(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, 
             'title': row[1],
             'type': row[2],
             'date': row[3].isoformat(),
-            'time': str(row[4]),
+            'time': str(row[4]) if row[4] else None,
             'endTime': str(row[5]) if row[5] else None,
-            'location': row[6],
-            'vksLink': row[7],
-            'description': row[8],
-            'status': row[9],
+            'endDate': row[6].isoformat() if row[6] else None,
+            'location': row[7],
+            'vksLink': row[8],
+            'description': row[9],
+            'status': row[10],
+            'regionName': row[11],
+            'isMultiDay': row[12],
             'responsible': responsible,
             'reminders': reminders,
-            'createdAt': row[10].isoformat()
+            'createdAt': row[13].isoformat()
         })
     
     cur.close()
@@ -194,9 +202,9 @@ def handle_create_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     
     try:
         cur.execute("""
-            INSERT INTO events (title, type, date, time, end_time, location, vks_link, 
-                              description, status, created_by)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO events (title, type, date, time, end_time, end_date, location, vks_link, 
+                              description, status, region_name, is_multi_day, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
             body_data.get('title'),
@@ -204,10 +212,13 @@ def handle_create_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
             body_data.get('date'),
             body_data.get('time'),
             body_data.get('endTime'),
+            body_data.get('endDate'),
             body_data.get('location'),
             body_data.get('vksLink'),
             body_data.get('description'),
             body_data.get('status', 'scheduled'),
+            body_data.get('regionName'),
+            body_data.get('isMultiDay', False),
             user['user_id']
         ))
         
@@ -262,9 +273,9 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     try:
         cur.execute("""
             UPDATE events
-            SET title = %s, type = %s, date = %s, time = %s, end_time = %s,
+            SET title = %s, type = %s, date = %s, time = %s, end_time = %s, end_date = %s,
                 location = %s, vks_link = %s, description = %s, status = %s,
-                updated_at = CURRENT_TIMESTAMP
+                region_name = %s, is_multi_day = %s, updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
         """, (
             body_data.get('title'),
@@ -272,10 +283,13 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
             body_data.get('date'),
             body_data.get('time'),
             body_data.get('endTime'),
+            body_data.get('endDate'),
             body_data.get('location'),
             body_data.get('vksLink'),
             body_data.get('description'),
             body_data.get('status'),
+            body_data.get('regionName'),
+            body_data.get('isMultiDay', False),
             event_id
         ))
         

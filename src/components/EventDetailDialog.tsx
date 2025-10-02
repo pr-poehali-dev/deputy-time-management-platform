@@ -68,7 +68,7 @@ export default function EventDetailDialog({
               <Icon name={typeConfig.icon as any} size={24} className="text-white" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold text-gray-900 mb-2 font-heading">
+              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 font-heading">
                 {event.title}
               </DialogTitle>
               <div className="flex flex-wrap gap-2">
@@ -88,7 +88,7 @@ export default function EventDetailDialog({
                 <Icon name="Calendar" size={18} className="text-blue-600" />
                 <span className="text-sm font-medium font-body">Дата</span>
               </div>
-              <p className="text-gray-900 font-body">
+              <p className="text-gray-900 dark:text-gray-100 font-body">
                 {new Date(event.date).toLocaleDateString('ru-RU', {
                   weekday: 'long',
                   day: 'numeric',
@@ -112,7 +112,7 @@ export default function EventDetailDialog({
                   <Icon name="Clock" size={18} className="text-blue-600" />
                   <span className="text-sm font-medium font-body">Время</span>
                 </div>
-                <p className="text-gray-900 font-body">
+                <p className="text-gray-900 dark:text-gray-100 font-body">
                   {event.time} {event.endTime && `— ${event.endTime}`}
                 </p>
               </div>
@@ -135,7 +135,7 @@ export default function EventDetailDialog({
                 <Icon name="MapPin" size={18} className="text-blue-600" />
                 <span className="text-sm font-medium font-body">Место проведения</span>
               </div>
-              <p className="text-gray-900 font-body">{event.location}</p>
+              <p className="text-gray-900 dark:text-gray-100 font-body">{event.location}</p>
             </div>
           )}
 
@@ -177,7 +177,7 @@ export default function EventDetailDialog({
               {event.responsible.map((person) => (
                 <div
                   key={person.id}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
                   <div className="bg-blue-100 p-2 rounded-full">
                     <Icon name="User" size={18} className="text-blue-600" />

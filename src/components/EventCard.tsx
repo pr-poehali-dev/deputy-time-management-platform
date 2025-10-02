@@ -40,7 +40,7 @@ export default function EventCard({ event, onEdit, onDelete }: EventCardProps) {
               <Icon name={typeConfig.icon as any} size={20} className="text-white" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-lg font-semibold text-gray-900 mb-2">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 {event.title}
               </CardTitle>
               <div className="flex flex-wrap gap-2">
@@ -56,7 +56,7 @@ export default function EventCard({ event, onEdit, onDelete }: EventCardProps) {
 
       <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <Icon name="Calendar" size={16} className="text-blue-600" />
             <span>
               {new Date(event.date).toLocaleDateString('ru-RU')}
@@ -64,7 +64,7 @@ export default function EventCard({ event, onEdit, onDelete }: EventCardProps) {
             </span>
           </div>
           {event.type !== 'regional-trip' && (
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
               <Icon name="Clock" size={16} className="text-blue-600" />
               <span>{event.time} {event.endTime && `- ${event.endTime}`}</span>
             </div>
@@ -100,7 +100,7 @@ export default function EventCard({ event, onEdit, onDelete }: EventCardProps) {
         )}
 
         {event.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{event.description}</p>
         )}
 
         <div className="pt-2 border-t">

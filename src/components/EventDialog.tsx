@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -96,9 +97,12 @@ export default function EventDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">
+          <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
             {event ? 'Редактировать событие' : 'Новое событие'}
           </DialogTitle>
+          <DialogDescription>
+            {event ? 'Внесите изменения в событие' : 'Заполните информацию о новом событии'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -229,14 +233,14 @@ export default function EventDialog({
 
           <div className="space-y-2">
             <Label>Ответственные лица *</Label>
-            <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-gray-50">
+            <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
               {availablePersons.map((person) => (
                 <Badge
                   key={person.id}
                   className={`cursor-pointer transition-colors ${
                     selectedPersonIds.includes(person.id)
                       ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                   }`}
                   onClick={() => togglePerson(person.id)}
                 >
