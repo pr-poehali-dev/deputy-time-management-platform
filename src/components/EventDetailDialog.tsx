@@ -17,6 +17,7 @@ const eventTypeConfig = {
   committee: { label: 'Заседание', color: 'bg-green-100 text-green-700', icon: 'Building2' },
   visit: { label: 'Визит', color: 'bg-red-100 text-red-700', icon: 'MapPin' },
   reception: { label: 'Прием', color: 'bg-cyan-100 text-cyan-700', icon: 'HandshakeIcon' },
+  'regional-trip': { label: 'Выезд в регион', color: 'bg-orange-100 text-orange-700', icon: 'Plane' },
 };
 
 const statusConfig = {
@@ -94,21 +95,41 @@ export default function EventDetailDialog({
                   month: 'long',
                   year: 'numeric',
                 })}
+                {event.endDate && (
+                  <span> — {new Date(event.endDate).toLocaleDateString('ru-RU', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}</span>
+                )}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-gray-600">
-                <Icon name="Clock" size={18} className="text-blue-600" />
-                <span className="text-sm font-medium font-body">Время</span>
+            {event.type !== 'regional-trip' && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Icon name="Clock" size={18} className="text-blue-600" />
+                  <span className="text-sm font-medium font-body">Время</span>
+                </div>
+                <p className="text-gray-900 font-body">
+                  {event.time} {event.endTime && `— ${event.endTime}`}
+                </p>
               </div>
-              <p className="text-gray-900 font-body">
-                {event.time} {event.endTime && `— ${event.endTime}`}
-              </p>
-            </div>
+            )}
           </div>
 
-          {event.location && (
+          {event.regionName && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Icon name="MapPin" size={18} className="text-blue-600" />
+                <span className="text-sm font-medium font-body">Регион</span>
+              </div>
+              <p className="text-gray-900 font-body font-medium">{event.regionName}</p>
+            </div>
+          )}
+
+          {event.location && !event.regionName && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-gray-600">
                 <Icon name="MapPin" size={18} className="text-blue-600" />

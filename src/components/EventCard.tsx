@@ -11,6 +11,7 @@ const eventTypeConfig = {
   committee: { label: 'Заседание', color: 'bg-green-100 text-green-700', icon: 'Building2' },
   visit: { label: 'Визит', color: 'bg-red-100 text-red-700', icon: 'MapPin' },
   reception: { label: 'Прием', color: 'bg-cyan-100 text-cyan-700', icon: 'HandshakeIcon' },
+  'regional-trip': { label: 'Выезд в регион', color: 'bg-orange-100 text-orange-700', icon: 'Plane' },
 };
 
 const statusConfig = {
@@ -57,15 +58,27 @@ export default function EventCard({ event, onEdit, onDelete }: EventCardProps) {
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
             <Icon name="Calendar" size={16} className="text-blue-600" />
-            <span>{new Date(event.date).toLocaleDateString('ru-RU')}</span>
+            <span>
+              {new Date(event.date).toLocaleDateString('ru-RU')}
+              {event.endDate && ` - ${new Date(event.endDate).toLocaleDateString('ru-RU')}`}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <Icon name="Clock" size={16} className="text-blue-600" />
-            <span>{event.time} {event.endTime && `- ${event.endTime}`}</span>
-          </div>
+          {event.type !== 'regional-trip' && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <Icon name="Clock" size={16} className="text-blue-600" />
+              <span>{event.time} {event.endTime && `- ${event.endTime}`}</span>
+            </div>
+          )}
         </div>
 
-        {event.location && (
+        {event.regionName && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Icon name="MapPin" size={16} className="text-blue-600" />
+            <span className="font-medium">{event.regionName}</span>
+          </div>
+        )}
+
+        {event.location && !event.regionName && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Icon name="MapPin" size={16} className="text-blue-600" />
             <span>{event.location}</span>

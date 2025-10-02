@@ -126,6 +126,37 @@ const Index = () => {
 
   const handleSave = async (eventData: Partial<ScheduleEvent>) => {
     try {
+      // Проверка блокировки даты для выезда в регион
+      if (eventData.type === 'regional-trip' && eventData.date) {
+        const startDate = new Date(eventData.date);
+        const endDate = eventData.endDate ? new Date(eventData.endDate) : startDate;
+        
+        // Проверяем все даты в диапазоне
+        const blockedDates: string[] = [];
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          blockedDates.push(d.toISOString().split('T')[0]);
+        }
+
+        // Проверяем конфликты с другими событиями
+        const hasConflict = events.some((e) => {
+          if (editingEvent && e.id === editingEvent.id) return false;
+          return blockedDates.includes(e.date);
+        });
+
+        if (hasConflict) {
+          toast({
+            title: 'Конфликт дат',
+            description: 'На выбранные даты уже запланированы другие события',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Устанавливаем время для выезда в регион
+        eventData.time = '00:00';
+        eventData.endTime = '23:59';
+      }
+
       if (editingEvent) {
         await api.updateEvent(eventData);
         toast({
@@ -296,6 +327,7 @@ const Index = () => {
                 <SelectItem value="committee">Заседание</SelectItem>
                 <SelectItem value="visit">Визит</SelectItem>
                 <SelectItem value="reception">Прием</SelectItem>
+                <SelectItem value="regional-trip">Выезд в регион</SelectItem>
               </SelectContent>
             </Select>
 

@@ -36,6 +36,7 @@ const eventTypes = [
   { value: 'committee', label: 'Заседание' },
   { value: 'visit', label: 'Визит' },
   { value: 'reception', label: 'Прием' },
+  { value: 'regional-trip', label: 'Выезд в регион' },
 ];
 
 export default function EventDialog({
@@ -52,12 +53,15 @@ export default function EventDialog({
       date: '',
       time: '',
       endTime: '',
+      endDate: '',
       location: '',
       vksLink: '',
       description: '',
       responsible: [],
       status: 'scheduled',
       reminders: [],
+      regionName: '',
+      isMultiDay: false,
     }
   );
 
@@ -131,7 +135,7 @@ export default function EventDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Дата *</Label>
+              <Label htmlFor="date">{formData.type === 'regional-trip' ? 'Дата начала *' : 'Дата *'}</Label>
               <Input
                 id="date"
                 type="date"
@@ -139,39 +143,64 @@ export default function EventDialog({
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               />
             </div>
+            {formData.type === 'regional-trip' && (
+              <div className="space-y-2">
+                <Label htmlFor="endDate">Дата окончания</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value, isMultiDay: true })}
+                />
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {formData.type !== 'regional-trip' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="time">Время начала *</Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endTime">Время окончания</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+          {formData.type === 'regional-trip' ? (
             <div className="space-y-2">
-              <Label htmlFor="time">Время начала *</Label>
+              <Label htmlFor="regionName">Название региона *</Label>
               <Input
-                id="time"
-                type="time"
-                value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                id="regionName"
+                value={formData.regionName}
+                onChange={(e) => setFormData({ ...formData, regionName: e.target.value })}
+                placeholder="Например: Московская область"
               />
             </div>
-
+          ) : (
             <div className="space-y-2">
-              <Label htmlFor="endTime">Время окончания</Label>
+              <Label htmlFor="location">Место проведения</Label>
               <Input
-                id="endTime"
-                type="time"
-                value={formData.endTime}
-                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="Например: Зал заседаний №3"
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">Место проведения</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="Например: Зал заседаний №3"
-            />
-          </div>
+          )}
 
           {formData.type === 'vks' && (
             <div className="space-y-2">
@@ -227,7 +256,12 @@ export default function EventDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!formData.title || !formData.date || !formData.time}
+            disabled={
+              !formData.title || 
+              !formData.date || 
+              (formData.type !== 'regional-trip' && !formData.time) ||
+              (formData.type === 'regional-trip' && !formData.regionName)
+            }
             className="bg-blue-600 hover:bg-blue-700"
           >
             {event ? 'Сохранить' : 'Создать'}

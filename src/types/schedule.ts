@@ -1,4 +1,4 @@
-export type EventType = 'meeting' | 'vks' | 'hearing' | 'committee' | 'visit' | 'reception';
+export type EventType = 'meeting' | 'vks' | 'hearing' | 'committee' | 'visit' | 'reception' | 'regional-trip';
 export type EventStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
 
 export interface Person {
@@ -16,6 +16,7 @@ export interface ScheduleEvent {
   date: string;
   time: string;
   endTime?: string;
+  endDate?: string;
   location?: string;
   vksLink?: string;
   description?: string;
@@ -23,4 +24,6 @@ export interface ScheduleEvent {
   status: EventStatus;
   createdAt: string;
   reminders?: string[];
+  regionName?: string;
+  isMultiDay?: boolean;
 }
