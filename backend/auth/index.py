@@ -59,6 +59,8 @@ def handle_login(data: Dict[str, Any]) -> Dict[str, Any]:
     login = data.get('login')
     password = data.get('password')
     
+    print(f"DEBUG: Login attempt - login={login}, has_password={bool(password)}")
+    
     if not login or not password:
         return {
             'statusCode': 400,
@@ -70,10 +72,11 @@ def handle_login(data: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor()
     
     login_escaped = login.replace("'", "''")
-    cur.execute(
-        f"SELECT id, email, password_hash, full_name, position, role FROM users WHERE login = '{login_escaped}'"
-    )
+    query = f"SELECT id, email, password_hash, full_name, position, role FROM users WHERE login = '{login_escaped}'"
+    print(f"DEBUG: Executing query: {query}")
+    cur.execute(query)
     user = cur.fetchone()
+    print(f"DEBUG: User found: {bool(user)}")
     
     cur.close()
     conn.close()
@@ -87,14 +90,21 @@ def handle_login(data: Dict[str, Any]) -> Dict[str, Any]:
     
     user_id, user_email, password_hash, full_name, position, role = user
     
+    print(f"DEBUG: Checking password for user_id={user_id}")
+    print(f"DEBUG: Password hash from DB: {password_hash[:20]}...")
+    
     try:
-        if not bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+        password_match = bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        print(f"DEBUG: Password match: {password_match}")
+        
+        if not password_match:
             return {
                 'statusCode': 401,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'Неверный логин или пароль'})
             }
-    except Exception:
+    except Exception as e:
+        print(f"DEBUG: Exception during password check: {str(e)}")
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
