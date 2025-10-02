@@ -12,7 +12,7 @@
       "path": "/",
       "body": {
         "action": "login",
-        "email": "nonexistent@test.com",
+        "login": "wronguser",
         "password": "wrongpassword"
       },
       "expectedStatus": 401

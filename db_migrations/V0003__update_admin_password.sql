@@ -1,0 +1,3 @@
+UPDATE users 
+SET password_hash = '$2b$12$KIXxLQG0Y3yZ5Z.5Z5Z5ZeJ5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Zu'
+WHERE login = 'admin';

@@ -12,7 +12,7 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [email, setEmail] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -22,7 +22,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setLoading(true);
 
     try {
-      await api.login(email, password);
+      await api.login(login, password);
       toast({
         title: 'Вход выполнен',
         description: 'Добро пожаловать в систему',
@@ -31,7 +31,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     } catch (error: any) {
       toast({
         title: 'Ошибка входа',
-        description: error.message || 'Неверный email или пароль',
+        description: error.message || 'Неверный логин или пароль',
         variant: 'destructive',
       });
     } finally {
@@ -54,13 +54,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-body">Email</Label>
+              <Label htmlFor="login" className="font-body">Логин</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="admin@deputy.gov.ru"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="login"
+                type="text"
+                placeholder="admin"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                 required
                 className="font-body"
               />
@@ -90,7 +90,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <strong>Тестовые данные для входа:</strong>
             </p>
             <p className="text-xs text-gray-500 font-body">
-              Email: admin@deputy.gov.ru<br />
+              Логин: admin<br />
               Пароль: admin123
             </p>
           </div>

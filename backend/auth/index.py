@@ -56,22 +56,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
 
 def handle_login(data: Dict[str, Any]) -> Dict[str, Any]:
-    email = data.get('email')
+    login = data.get('login')
     password = data.get('password')
     
-    if not email or not password:
+    if not login or not password:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Email and password required'})
+            'body': json.dumps({'error': 'Логин и пароль обязательны'})
         }
     
     conn = get_db_connection()
     cur = conn.cursor()
     
-    email_escaped = email.replace("'", "''")
+    login_escaped = login.replace("'", "''")
     cur.execute(
-        f"SELECT id, email, password_hash, full_name, position, role FROM users WHERE email = '{email_escaped}'"
+        f"SELECT id, email, password_hash, full_name, position, role FROM users WHERE login = '{login_escaped}'"
     )
     user = cur.fetchone()
     
@@ -82,16 +82,23 @@ def handle_login(data: Dict[str, Any]) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid credentials'})
+            'body': json.dumps({'error': 'Неверный логин или пароль'})
         }
     
     user_id, user_email, password_hash, full_name, position, role = user
     
-    if not bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+    try:
+        if not bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+            return {
+                'statusCode': 401,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Неверный логин или пароль'})
+            }
+    except Exception:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid credentials'})
+            'body': json.dumps({'error': 'Неверный логин или пароль'})
         }
     
     jwt_secret = os.environ.get('JWT_SECRET', 'default-secret-key')
