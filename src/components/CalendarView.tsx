@@ -17,6 +17,7 @@ const eventTypeConfig = {
   committee: { label: 'Заседание', color: 'bg-green-500', icon: 'Building2' },
   visit: { label: 'Визит', color: 'bg-red-500', icon: 'MapPin' },
   reception: { label: 'Прием', color: 'bg-cyan-500', icon: 'HandshakeIcon' },
+  'regional-trip': { label: 'Выезд в регион', color: 'bg-orange-500', icon: 'Plane' },
 };
 
 export default function CalendarView({ events, onEventClick }: CalendarViewProps) {

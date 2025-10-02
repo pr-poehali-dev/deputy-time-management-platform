@@ -56,9 +56,9 @@ export default function TimelineView({ events, onEdit, onDelete }: TimelineViewP
 
   if (groupedEvents.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-        <Icon name="CalendarOff" size={48} className="mx-auto text-gray-300 mb-4" />
-        <p className="text-gray-500 text-lg font-body">Нет запланированных событий</p>
+      <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <Icon name="CalendarOff" size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+        <p className="text-gray-500 dark:text-gray-400 text-lg font-body">Нет запланированных событий</p>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export default function TimelineView({ events, onEdit, onDelete }: TimelineViewP
             className={`p-4 ${
               isToday(date)
                 ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
-                : 'bg-gradient-to-r from-gray-100 to-gray-50'
+                : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -79,19 +79,19 @@ export default function TimelineView({ events, onEdit, onDelete }: TimelineViewP
                 <Icon
                   name="Calendar"
                   size={24}
-                  className={isToday(date) ? 'text-white' : 'text-blue-600'}
+                  className={isToday(date) ? 'text-white' : 'text-blue-600 dark:text-blue-400'}
                 />
                 <div>
                   <h3
                     className={`text-xl font-bold capitalize font-heading ${
-                      isToday(date) ? 'text-white' : 'text-gray-900'
+                      isToday(date) ? 'text-white' : 'text-gray-900 dark:text-gray-100'
                     }`}
                   >
                     {formatDate(date)}
                   </h3>
                   <p
                     className={`text-sm font-body ${
-                      isToday(date) ? 'text-blue-100' : 'text-gray-500'
+                      isToday(date) ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
                     }`}
                   >
                     {new Date(date).toLocaleDateString('ru-RU', {

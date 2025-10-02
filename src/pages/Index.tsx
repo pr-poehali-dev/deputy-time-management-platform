@@ -126,35 +126,36 @@ const Index = () => {
 
   const handleSave = async (eventData: Partial<ScheduleEvent>) => {
     try {
-      // Проверка блокировки даты для выезда в регион
-      if (eventData.type === 'regional-trip' && eventData.date) {
-        const startDate = new Date(eventData.date);
-        const endDate = eventData.endDate ? new Date(eventData.endDate) : startDate;
-        
-        // Проверяем все даты в диапазоне
-        const blockedDates: string[] = [];
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          blockedDates.push(d.toISOString().split('T')[0]);
-        }
-
-        // Проверяем конфликты с другими событиями
-        const hasConflict = events.some((e) => {
-          if (editingEvent && e.id === editingEvent.id) return false;
-          return blockedDates.includes(e.date);
-        });
-
-        if (hasConflict) {
-          toast({
-            title: 'Конфликт дат',
-            description: 'На выбранные даты уже запланированы другие события',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        // Устанавливаем время для выезда в регион
+      // Установка времени для выезда в регион (должно быть ДО проверок)
+      if (eventData.type === 'regional-trip') {
         eventData.time = '00:00';
         eventData.endTime = '23:59';
+        
+        if (eventData.date) {
+          const startDate = new Date(eventData.date);
+          const endDate = eventData.endDate ? new Date(eventData.endDate) : startDate;
+          
+          // Проверяем все даты в диапазоне
+          const blockedDates: string[] = [];
+          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            blockedDates.push(d.toISOString().split('T')[0]);
+          }
+
+          // Проверяем конфликты с другими событиями
+          const hasConflict = events.some((e) => {
+            if (editingEvent && e.id === editingEvent.id) return false;
+            return blockedDates.includes(e.date);
+          });
+
+          if (hasConflict) {
+            toast({
+              title: 'Конфликт дат',
+              description: 'На выбранные даты уже запланированы другие события',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
       }
 
       if (editingEvent) {
