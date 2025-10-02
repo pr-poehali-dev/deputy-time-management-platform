@@ -8,7 +8,6 @@ Returns: HTTP response со списком пользователей или р�
 import json
 import os
 import jwt
-import bcrypt
 from typing import Dict, Any, Optional
 
 def get_db_connection():
@@ -89,7 +88,7 @@ def handle_get_users(user: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor()
     
     cur.execute("""
-        SELECT id, email, full_name, position, role, created_at
+        SELECT id, login, email, full_name, position, role, created_at
         FROM users
         ORDER BY role DESC, full_name
     """)
@@ -98,11 +97,12 @@ def handle_get_users(user: Dict[str, Any]) -> Dict[str, Any]:
     for row in cur.fetchall():
         users_list.append({
             'id': row[0],
-            'email': row[1],
-            'full_name': row[2],
-            'position': row[3],
-            'role': row[4],
-            'created_at': row[5].isoformat()
+            'login': row[1],
+            'email': row[2],
+            'full_name': row[3],
+            'position': row[4],
+            'role': row[5],
+            'created_at': row[6].isoformat() if row[6] else None
         })
     
     cur.close()
@@ -117,30 +117,36 @@ def handle_get_users(user: Dict[str, Any]) -> Dict[str, Any]:
 def handle_create_user(event: Dict[str, Any]) -> Dict[str, Any]:
     body_data = json.loads(event.get('body', '{}'))
     
+    login = body_data.get('login')
     email = body_data.get('email')
     password = body_data.get('password')
     full_name = body_data.get('full_name')
     position = body_data.get('position', '')
     role = body_data.get('role', 'user')
     
-    if not email or not password or not full_name:
+    if not login or not email or not password or not full_name:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Email, password and full_name required'})
+            'body': json.dumps({'error': 'Login, email, password and full_name required'})
         }
-    
-    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     conn = get_db_connection()
     cur = conn.cursor()
     
     try:
-        cur.execute("""
-            INSERT INTO users (email, password_hash, full_name, position, role)
-            VALUES (%s, %s, %s, %s, %s)
+        login_escaped = login.replace("'", "''")
+        email_escaped = email.replace("'", "''")
+        password_escaped = password.replace("'", "''")
+        full_name_escaped = full_name.replace("'", "''")
+        position_escaped = position.replace("'", "''")
+        role_escaped = role.replace("'", "''")
+        
+        cur.execute(f"""
+            INSERT INTO users (login, email, password_hash, full_name, position, role)
+            VALUES ('{login_escaped}', '{email_escaped}', '{password_escaped}', '{full_name_escaped}', '{position_escaped}', '{role_escaped}')
             RETURNING id
-        """, (email, password_hash, full_name, position, role))
+        """)
         
         user_id = cur.fetchone()[0]
         conn.commit()
@@ -180,30 +186,35 @@ def handle_update_user(event: Dict[str, Any]) -> Dict[str, Any]:
     
     try:
         updates = []
-        params = []
+        
+        if 'login' in body_data:
+            login_escaped = body_data['login'].replace("'", "''")
+            updates.append(f"login = '{login_escaped}'")
+        
+        if 'email' in body_data:
+            email_escaped = body_data['email'].replace("'", "''")
+            updates.append(f"email = '{email_escaped}'")
         
         if 'full_name' in body_data:
-            updates.append('full_name = %s')
-            params.append(body_data['full_name'])
+            full_name_escaped = body_data['full_name'].replace("'", "''")
+            updates.append(f"full_name = '{full_name_escaped}'")
         
         if 'position' in body_data:
-            updates.append('position = %s')
-            params.append(body_data['position'])
+            position_escaped = body_data['position'].replace("'", "''")
+            updates.append(f"position = '{position_escaped}'")
         
         if 'role' in body_data:
-            updates.append('role = %s')
-            params.append(body_data['role'])
+            role_escaped = body_data['role'].replace("'", "''")
+            updates.append(f"role = '{role_escaped}'")
         
         if 'password' in body_data:
-            password_hash = bcrypt.hashpw(body_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            updates.append('password_hash = %s')
-            params.append(password_hash)
+            password_escaped = body_data['password'].replace("'", "''")
+            updates.append(f"password_hash = '{password_escaped}'")
         
         updates.append('updated_at = CURRENT_TIMESTAMP')
-        params.append(user_id)
         
-        query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s"
-        cur.execute(query, params)
+        query = f"UPDATE users SET {', '.join(updates)} WHERE id = {int(user_id)}"
+        cur.execute(query)
         
         conn.commit()
         cur.close()

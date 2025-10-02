@@ -164,6 +164,9 @@ export default function EventDetailDialog({
                   <div>
                     <p className="font-medium text-gray-900 font-body">{person.name}</p>
                     <p className="text-sm text-gray-500 font-body">{person.position}</p>
+                    {person.login && (
+                      <p className="text-xs text-gray-400 font-body">Логин: {person.login}</p>
+                    )}
                   </div>
                 </div>
               ))}

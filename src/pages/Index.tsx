@@ -66,6 +66,8 @@ const Index = () => {
         id: String(u.id),
         name: u.full_name,
         position: u.position,
+        login: u.login,
+        email: u.email,
       })));
     } catch (error: any) {
       toast({
@@ -203,45 +205,47 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       <header className="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-1 font-heading">График управления</h1>
-              <p className="text-blue-100 font-body">Система планирования депутата Госдумы</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 font-heading">График управления</h1>
+              <p className="text-sm text-blue-100 font-body">Система планирования депутата Госдумы</p>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <div className="text-sm text-blue-200 font-body">На сегодня</div>
-                <div className="text-2xl font-bold font-heading">{todayCount}</div>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 w-full sm:w-auto">
+              <div className="text-center sm:text-right">
+                <div className="text-xs sm:text-sm text-blue-200 font-body">На сегодня</div>
+                <div className="text-xl sm:text-2xl font-bold font-heading">{todayCount}</div>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-blue-200 font-body">Предстоящих</div>
-                <div className="text-2xl font-bold font-heading">{upcomingCount}</div>
+              <div className="text-center sm:text-right">
+                <div className="text-xs sm:text-sm text-blue-200 font-body">Предстоящих</div>
+                <div className="text-xl sm:text-2xl font-bold font-heading">{upcomingCount}</div>
               </div>
-              <div className="border-l border-blue-400 pl-6 flex items-center gap-3">
-                <div>
-                  <div className="text-sm text-blue-200 font-body">{currentUser?.full_name}</div>
+              <div className="border-l border-blue-400 pl-3 sm:pl-6 flex items-center gap-2 sm:gap-3">
+                <div className="w-full">
+                  <div className="text-xs sm:text-sm text-blue-200 font-body">{currentUser?.full_name}</div>
                   <div className="text-xs text-blue-300 font-body mb-2">{currentUser?.position}</div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {isAdmin && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setUserManagementOpen(true)}
-                        className="text-white border-white hover:bg-blue-800"
+                        className="text-white border-white hover:bg-blue-800 text-xs"
                       >
-                        <Icon name="Users" size={16} className="mr-1" />
-                        Пользователи
+                        <Icon name="Users" size={14} className="mr-1" />
+                        <span className="hidden sm:inline">Пользователи</span>
+                        <span className="sm:hidden">👥</span>
                       </Button>
                     )}
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={handleLogout}
-                      className="text-white border-white hover:bg-blue-800"
+                      className="text-white border-white hover:bg-blue-800 text-xs"
                     >
-                      <Icon name="LogOut" size={16} className="mr-1" />
-                      Выход
+                      <Icon name="LogOut" size={14} className="mr-1" />
+                      <span className="hidden sm:inline">Выход</span>
+                      <span className="sm:hidden">↗</span>
                     </Button>
                   </div>
                 </div>
@@ -251,9 +255,9 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Icon
                 name="Search"

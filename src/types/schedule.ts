@@ -5,6 +5,8 @@ export interface Person {
   id: string;
   name: string;
   position: string;
+  login?: string;
+  email?: string;
 }
 
 export interface ScheduleEvent {

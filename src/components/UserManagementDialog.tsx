@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: number;
+  login: string;
   email: string;
   full_name: string;
   position: string;
@@ -50,6 +51,7 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
+    login: '',
     email: '',
     password: '',
     full_name: '',
@@ -114,6 +116,7 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setFormData({
+      login: user.login || '',
       email: user.email,
       password: '',
       full_name: user.full_name,
@@ -121,7 +124,7 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
       role: user.role,
     });
     setShowForm(true);
-  };
+};
 
   const handleDelete = async (id: number) => {
     if (!confirm('Вы уверены, что хотите удалить этого пользователя?')) {
@@ -146,6 +149,7 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
 
   const resetForm = () => {
     setFormData({
+      login: '',
       email: '',
       password: '',
       full_name: '',
@@ -154,7 +158,7 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
     });
     setEditingUser(null);
     setShowForm(false);
-  };
+};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -191,8 +195,9 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
                     <TableHeader>
                       <TableRow>
                         <TableHead className="font-body">ФИО</TableHead>
-                        <TableHead className="font-body">Email</TableHead>
-                        <TableHead className="font-body">Должность</TableHead>
+                        <TableHead className="font-body">Логин</TableHead>
+                        <TableHead className="font-body hidden sm:table-cell">Email</TableHead>
+                        <TableHead className="font-body hidden md:table-cell">Должность</TableHead>
                         <TableHead className="font-body">Роль</TableHead>
                         <TableHead className="font-body text-right">Действия</TableHead>
                       </TableRow>
@@ -203,8 +208,9 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
                           <TableCell className="font-medium font-body">
                             {user.full_name}
                           </TableCell>
-                          <TableCell className="font-body">{user.email}</TableCell>
-                          <TableCell className="font-body">{user.position}</TableCell>
+                          <TableCell className="font-body">{user.login}</TableCell>
+                          <TableCell className="font-body hidden sm:table-cell">{user.email}</TableCell>
+                          <TableCell className="font-body hidden md:table-cell">{user.position}</TableCell>
                           <TableCell>
                             <Badge
                               className={
@@ -257,6 +263,19 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="login" className="font-body">Логин *</Label>
+                <Input
+                  id="login"
+                  value={formData.login}
+                  onChange={(e) => setFormData({ ...formData, login: e.target.value })}
+                  placeholder="ivanov"
+                  required
+                  disabled={!!editingUser}
+                  className="font-body"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="email" className="font-body">Email *</Label>
                 <Input
                   id="email"
@@ -265,7 +284,6 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="ivanov@deputy.gov.ru"
                   required
-                  disabled={!!editingUser}
                   className="font-body"
                 />
               </div>
