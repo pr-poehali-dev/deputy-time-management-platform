@@ -69,9 +69,9 @@ def handle_login(data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
     
+    email_escaped = email.replace("'", "''")
     cur.execute(
-        "SELECT id, email, password_hash, full_name, position, role FROM users WHERE email = %s",
-        (email,)
+        f"SELECT id, email, password_hash, full_name, position, role FROM users WHERE email = '{email_escaped}'"
     )
     user = cur.fetchone()
     
@@ -139,9 +139,9 @@ def handle_verify(headers: Dict[str, str]) -> Dict[str, Any]:
         conn = get_db_connection()
         cur = conn.cursor()
         
+        user_id = int(payload['user_id'])
         cur.execute(
-            "SELECT id, email, full_name, position, role FROM users WHERE id = %s",
-            (payload['user_id'],)
+            f"SELECT id, email, full_name, position, role FROM users WHERE id = {user_id}"
         )
         user = cur.fetchone()
         
@@ -203,9 +203,14 @@ def handle_register(data: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor()
     
     try:
+        email_escaped = email.replace("'", "''")
+        password_hash_escaped = password_hash.replace("'", "''")
+        full_name_escaped = full_name.replace("'", "''")
+        position_escaped = position.replace("'", "''")
+        role_escaped = role.replace("'", "''")
+        
         cur.execute(
-            "INSERT INTO users (email, password_hash, full_name, position, role) VALUES (%s, %s, %s, %s, %s) RETURNING id",
-            (email, password_hash, full_name, position, role)
+            f"INSERT INTO users (email, password_hash, full_name, position, role) VALUES ('{email_escaped}', '{password_hash_escaped}', '{full_name_escaped}', '{position_escaped}', '{role_escaped}') RETURNING id"
         )
         user_id = cur.fetchone()[0]
         conn.commit()
