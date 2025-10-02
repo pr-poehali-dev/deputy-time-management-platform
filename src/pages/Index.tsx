@@ -3,6 +3,8 @@ import { ScheduleEvent, EventType } from '../types/schedule';
 import { mockEvents, mockPersons } from '../data/mockData';
 import EventCard from '../components/EventCard';
 import EventDialog from '../components/EventDialog';
+import CalendarView from '../components/CalendarView';
+import TimelineView from '../components/TimelineView';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -22,6 +24,7 @@ const Index = () => {
   const [filterType, setFilterType] = useState<EventType | 'all'>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | undefined>();
+  const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'grid'>('timeline');
   const { toast } = useToast();
 
   const activeEvents = useMemo(
@@ -121,44 +124,73 @@ const Index = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Icon
-              name="Search"
-              size={20}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <Input
-              placeholder="Поиск событий..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 font-body"
-            />
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Icon
+                name="Search"
+                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <Input
+                placeholder="Поиск событий..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-11 font-body"
+              />
+            </div>
+
+            <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+              <SelectTrigger className="w-full lg:w-[200px] h-11 font-body">
+                <SelectValue placeholder="Тип события" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все типы</SelectItem>
+                <SelectItem value="meeting">Встреча</SelectItem>
+                <SelectItem value="vks">ВКС</SelectItem>
+                <SelectItem value="hearing">Слушания</SelectItem>
+                <SelectItem value="committee">Заседание</SelectItem>
+                <SelectItem value="visit">Визит</SelectItem>
+                <SelectItem value="reception">Прием</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              onClick={handleNewEvent}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
+            >
+              <Icon name="Plus" size={20} className="mr-2" />
+              Добавить событие
+            </Button>
           </div>
 
-          <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-            <SelectTrigger className="w-full lg:w-[200px] h-11 font-body">
-              <SelectValue placeholder="Тип события" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все типы</SelectItem>
-              <SelectItem value="meeting">Встреча</SelectItem>
-              <SelectItem value="vks">ВКС</SelectItem>
-              <SelectItem value="hearing">Слушания</SelectItem>
-              <SelectItem value="committee">Заседание</SelectItem>
-              <SelectItem value="visit">Визит</SelectItem>
-              <SelectItem value="reception">Прием</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button
-            onClick={handleNewEvent}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
-          >
-            <Icon name="Plus" size={20} className="mr-2" />
-            Добавить событие
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'timeline' ? 'default' : 'outline'}
+              onClick={() => setViewMode('timeline')}
+              className={viewMode === 'timeline' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+            >
+              <Icon name="List" size={18} className="mr-2" />
+              По датам
+            </Button>
+            <Button
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
+              onClick={() => setViewMode('calendar')}
+              className={viewMode === 'calendar' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+            >
+              <Icon name="CalendarDays" size={18} className="mr-2" />
+              Календарь
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              onClick={() => setViewMode('grid')}
+              className={viewMode === 'grid' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+            >
+              <Icon name="LayoutGrid" size={18} className="mr-2" />
+              Карточки
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="active" className="space-y-6">
@@ -183,16 +215,33 @@ const Index = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredActiveEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
+              <>
+                {viewMode === 'timeline' && (
+                  <TimelineView
+                    events={filteredActiveEvents}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                   />
-                ))}
-              </div>
+                )}
+                {viewMode === 'calendar' && (
+                  <CalendarView
+                    events={filteredActiveEvents}
+                    onEventClick={handleEdit}
+                  />
+                )}
+                {viewMode === 'grid' && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {filteredActiveEvents.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 
