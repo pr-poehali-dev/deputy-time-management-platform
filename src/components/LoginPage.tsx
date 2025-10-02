@@ -85,15 +85,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               {loading ? 'Вход...' : 'Войти'}
             </Button>
           </form>
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-600 font-body mb-2">
-              <strong>Тестовые данные для входа:</strong>
-            </p>
-            <p className="text-xs text-gray-500 font-body">
-              Логин: admin<br />
-              Пароль: admin123
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

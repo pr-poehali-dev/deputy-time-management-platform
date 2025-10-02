@@ -7,6 +7,7 @@ import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import LoginPage from '../components/LoginPage';
 import UserManagementDialog from '../components/UserManagementDialog';
+import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -203,7 +204,7 @@ const Index = () => {
   const canEdit = isAdmin;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col">
       <header className="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -430,6 +431,8 @@ const Index = () => {
           onOpenChange={setUserManagementOpen}
         />
       )}
+
+      <Footer />
     </div>
   );
 };
