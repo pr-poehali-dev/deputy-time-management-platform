@@ -6,6 +6,7 @@ import EventDetailDialog from '../components/EventDetailDialog';
 import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import LoginPage from '../components/LoginPage';
+import UserManagementDialog from '../components/UserManagementDialog';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -33,6 +34,7 @@ const Index = () => {
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | undefined>();
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'grid'>('timeline');
+  const [userManagementOpen, setUserManagementOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -216,18 +218,33 @@ const Index = () => {
                 <div className="text-sm text-blue-200 font-body">Предстоящих</div>
                 <div className="text-2xl font-bold font-heading">{upcomingCount}</div>
               </div>
-              <div className="border-l border-blue-400 pl-6">
-                <div className="text-sm text-blue-200 font-body">{currentUser?.full_name}</div>
-                <div className="text-xs text-blue-300 font-body mb-2">{currentUser?.position}</div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleLogout}
-                  className="text-white border-white hover:bg-blue-800"
-                >
-                  <Icon name="LogOut" size={16} className="mr-1" />
-                  Выход
-                </Button>
+              <div className="border-l border-blue-400 pl-6 flex items-center gap-3">
+                <div>
+                  <div className="text-sm text-blue-200 font-body">{currentUser?.full_name}</div>
+                  <div className="text-xs text-blue-300 font-body mb-2">{currentUser?.position}</div>
+                  <div className="flex gap-2">
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setUserManagementOpen(true)}
+                        className="text-white border-white hover:bg-blue-800"
+                      >
+                        <Icon name="Users" size={16} className="mr-1" />
+                        Пользователи
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleLogout}
+                      className="text-white border-white hover:bg-blue-800"
+                    >
+                      <Icon name="LogOut" size={16} className="mr-1" />
+                      Выход
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -402,6 +419,13 @@ const Index = () => {
         onDelete={handleDelete}
         canEdit={canEdit}
       />
+
+      {isAdmin && (
+        <UserManagementDialog
+          open={userManagementOpen}
+          onOpenChange={setUserManagementOpen}
+        />
+      )}
     </div>
   );
 };
