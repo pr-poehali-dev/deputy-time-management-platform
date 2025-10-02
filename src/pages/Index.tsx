@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
-import { ScheduleEvent, EventType } from '../types/schedule';
-import { mockEvents, mockPersons } from '../data/mockData';
+import { useState, useMemo, useEffect } from 'react';
+import { ScheduleEvent, EventType, Person } from '../types/schedule';
 import EventCard from '../components/EventCard';
 import EventDialog from '../components/EventDialog';
+import EventDetailDialog from '../components/EventDetailDialog';
 import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
+import LoginPage from '../components/LoginPage';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -17,15 +18,74 @@ import {
 } from '../components/ui/select';
 import Icon from '../components/ui/icon';
 import { useToast } from '../hooks/use-toast';
+import { api, User } from '../lib/api';
 
 const Index = () => {
-  const [events, setEvents] = useState<ScheduleEvent[]>(mockEvents);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [users, setUsers] = useState<Person[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<EventType | 'all'>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | undefined>();
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'grid'>('timeline');
   const { toast } = useToast();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const { user } = await api.verify();
+      setCurrentUser(user);
+      setAuthenticated(true);
+      await loadData();
+    } catch {
+      setAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const [eventsData, usersData] = await Promise.all([
+        api.getEvents(),
+        api.getUsers(),
+      ]);
+
+      setEvents(eventsData.events || []);
+      setUsers(usersData.users.map((u: any) => ({
+        id: String(u.id),
+        name: u.full_name,
+        position: u.position,
+      })));
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка загрузки',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleLogin = async () => {
+    setAuthenticated(true);
+    await checkAuth();
+  };
+
+  const handleLogout = () => {
+    api.logout();
+    setAuthenticated(false);
+    setCurrentUser(null);
+    setEvents([]);
+    setUsers([]);
+  };
 
   const activeEvents = useMemo(
     () => events.filter((e) => e.status !== 'completed' && e.status !== 'cancelled'),
@@ -57,23 +117,30 @@ const Index = () => {
     [archivedEvents, searchQuery, filterType]
   );
 
-  const handleSave = (eventData: Partial<ScheduleEvent>) => {
-    if (editingEvent) {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === editingEvent.id ? { ...e, ...eventData } : e))
-      );
+  const handleSave = async (eventData: Partial<ScheduleEvent>) => {
+    try {
+      if (editingEvent) {
+        await api.updateEvent(eventData);
+        toast({
+          title: 'Событие обновлено',
+          description: 'Изменения успешно сохранены',
+        });
+      } else {
+        await api.createEvent(eventData);
+        toast({
+          title: 'Событие создано',
+          description: 'Новое событие добавлено в график',
+        });
+      }
+      setEditingEvent(undefined);
+      await loadData();
+    } catch (error: any) {
       toast({
-        title: 'Событие обновлено',
-        description: 'Изменения успешно сохранены',
-      });
-    } else {
-      setEvents((prev) => [...prev, eventData as ScheduleEvent]);
-      toast({
-        title: 'Событие создано',
-        description: 'Новое событие добавлено в график',
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
       });
     }
-    setEditingEvent(undefined);
   };
 
   const handleEdit = (event: ScheduleEvent) => {
@@ -81,13 +148,21 @@ const Index = () => {
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    toast({
-      title: 'Событие удалено',
-      description: 'Событие удалено из графика',
-      variant: 'destructive',
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await api.deleteEvent(id);
+      toast({
+        title: 'Событие удалено',
+        description: 'Событие удалено из графика',
+      });
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleNewEvent = () => {
@@ -95,10 +170,33 @@ const Index = () => {
     setDialogOpen(true);
   };
 
+  const handleEventClick = (event: ScheduleEvent) => {
+    setSelectedEvent(event);
+    setDetailDialogOpen(true);
+  };
+
   const upcomingCount = activeEvents.length;
   const todayCount = activeEvents.filter(
     (e) => e.date === new Date().toISOString().split('T')[0]
   ).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-body">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  const isAdmin = currentUser?.role === 'admin';
+  const canEdit = isAdmin;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
@@ -117,6 +215,19 @@ const Index = () => {
               <div className="text-right">
                 <div className="text-sm text-blue-200 font-body">Предстоящих</div>
                 <div className="text-2xl font-bold font-heading">{upcomingCount}</div>
+              </div>
+              <div className="border-l border-blue-400 pl-6">
+                <div className="text-sm text-blue-200 font-body">{currentUser?.full_name}</div>
+                <div className="text-xs text-blue-300 font-body mb-2">{currentUser?.position}</div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="text-white border-white hover:bg-blue-800"
+                >
+                  <Icon name="LogOut" size={16} className="mr-1" />
+                  Выход
+                </Button>
               </div>
             </div>
           </div>
@@ -155,14 +266,16 @@ const Index = () => {
               </SelectContent>
             </Select>
 
-            <Button
-              onClick={handleNewEvent}
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
-            >
-              <Icon name="Plus" size={20} className="mr-2" />
-              Добавить событие
-            </Button>
+            {canEdit && (
+              <Button
+                onClick={handleNewEvent}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
+              >
+                <Icon name="Plus" size={20} className="mr-2" />
+                Добавить событие
+              </Button>
+            )}
           </div>
 
           <div className="flex gap-2">
@@ -210,34 +323,37 @@ const Index = () => {
               <div className="text-center py-16 bg-white rounded-lg shadow-sm">
                 <Icon name="CalendarOff" size={48} className="mx-auto text-gray-300 mb-4" />
                 <p className="text-gray-500 text-lg font-body">Нет запланированных событий</p>
-                <Button onClick={handleNewEvent} className="mt-4" variant="outline">
-                  Создать первое событие
-                </Button>
+                {canEdit && (
+                  <Button onClick={handleNewEvent} className="mt-4" variant="outline">
+                    Создать первое событие
+                  </Button>
+                )}
               </div>
             ) : (
               <>
                 {viewMode === 'timeline' && (
                   <TimelineView
                     events={filteredActiveEvents}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onEdit={canEdit ? handleEdit : handleEventClick}
+                    onDelete={canEdit ? handleDelete : () => {}}
                   />
                 )}
                 {viewMode === 'calendar' && (
                   <CalendarView
                     events={filteredActiveEvents}
-                    onEventClick={handleEdit}
+                    onEventClick={handleEventClick}
                   />
                 )}
                 {viewMode === 'grid' && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                     {filteredActiveEvents.map((event) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                      />
+                      <div key={event.id} onClick={() => handleEventClick(event)} className="cursor-pointer">
+                        <EventCard
+                          event={event}
+                          onEdit={canEdit ? handleEdit : undefined}
+                          onDelete={canEdit ? handleDelete : undefined}
+                        />
+                      </div>
                     ))}
                   </div>
                 )}
@@ -254,12 +370,13 @@ const Index = () => {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredArchivedEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
+                  <div key={event.id} onClick={() => handleEventClick(event)} className="cursor-pointer">
+                    <EventCard
+                      event={event}
+                      onEdit={canEdit ? handleEdit : undefined}
+                      onDelete={canEdit ? handleDelete : undefined}
+                    />
+                  </div>
                 ))}
               </div>
             )}
@@ -267,12 +384,23 @@ const Index = () => {
         </Tabs>
       </div>
 
-      <EventDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        event={editingEvent}
-        availablePersons={mockPersons}
-        onSave={handleSave}
+      {canEdit && (
+        <EventDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          event={editingEvent}
+          availablePersons={users}
+          onSave={handleSave}
+        />
+      )}
+
+      <EventDetailDialog
+        event={selectedEvent}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        canEdit={canEdit}
       />
     </div>
   );

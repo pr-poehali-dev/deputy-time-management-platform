@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Test login with invalid credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "login",
+        "email": "nonexistent@test.com",
+        "password": "wrongpassword"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Test verify without token",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "verify"
+      },
+      "expectedStatus": 401
+    }
+  ]
+}
