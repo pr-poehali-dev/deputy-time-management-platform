@@ -4,19 +4,19 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-r from-blue-900 to-blue-700 text-white mt-auto">
+    <footer className="bg-gradient-to-r from-blue-900 to-blue-700 dark:from-gray-950 dark:to-gray-800 text-white mt-auto transition-colors">
       <div className="container mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-lg font-bold mb-4 font-heading">График управления</h3>
-            <p className="text-sm text-blue-200 font-body">
+            <p className="text-sm text-blue-200 dark:text-gray-400 font-body">
               Система планирования депутата Государственной Думы Российской Федерации
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-bold mb-4 font-heading">Контакты</h3>
-            <div className="space-y-2 text-sm text-blue-200 font-body">
+            <div className="space-y-2 text-sm text-blue-200 dark:text-gray-400 font-body">
               <div className="flex items-center gap-2">
                 <Icon name="Mail" size={16} />
                 <span>info@deputy.gov.ru</span>
@@ -34,7 +34,7 @@ export default function Footer() {
 
           <div>
             <h3 className="text-lg font-bold mb-4 font-heading">Навигация</h3>
-            <div className="space-y-2 text-sm text-blue-200 font-body">
+            <div className="space-y-2 text-sm text-blue-200 dark:text-gray-400 font-body">
               <a href="#" className="block hover:text-white transition-colors">
                 График мероприятий
               </a>
@@ -48,28 +48,28 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-blue-400 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-blue-200 font-body text-center sm:text-left">
+        <div className="border-t border-blue-400 dark:border-gray-700 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-blue-200 dark:text-gray-400 font-body text-center sm:text-left">
             © {currentYear} График управления. Все права защищены.
           </p>
           <div className="flex items-center gap-4">
             <a
               href="#"
-              className="text-blue-200 hover:text-white transition-colors"
+              className="text-blue-200 dark:text-gray-400 hover:text-white transition-colors"
               aria-label="Telegram"
             >
               <Icon name="Send" size={20} />
             </a>
             <a
               href="#"
-              className="text-blue-200 hover:text-white transition-colors"
+              className="text-blue-200 dark:text-gray-400 hover:text-white transition-colors"
               aria-label="VK"
             >
               <Icon name="Share2" size={20} />
             </a>
             <a
               href="#"
-              className="text-blue-200 hover:text-white transition-colors"
+              className="text-blue-200 dark:text-gray-400 hover:text-white transition-colors"
               aria-label="Email"
             >
               <Icon name="Mail" size={20} />

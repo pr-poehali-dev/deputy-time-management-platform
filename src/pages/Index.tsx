@@ -21,6 +21,7 @@ import {
 import Icon from '../components/ui/icon';
 import { useToast } from '../hooks/use-toast';
 import { api, User } from '../lib/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Index = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -37,6 +38,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'grid'>('timeline');
   const [userManagementOpen, setUserManagementOpen] = useState(false);
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     checkAuth();
@@ -187,10 +189,10 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-body">Загрузка...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300 font-body">Загрузка...</p>
         </div>
       </div>
     );
@@ -204,8 +206,8 @@ const Index = () => {
   const canEdit = isAdmin;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col">
-      <header className="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col transition-colors">
+      <header className="bg-gradient-to-r from-blue-900 to-blue-700 dark:from-gray-950 dark:to-gray-800 text-white shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -226,6 +228,15 @@ const Index = () => {
                   <div className="text-xs sm:text-sm text-blue-200 font-body">{currentUser?.full_name}</div>
                   <div className="text-xs text-blue-300 font-body mb-2">{currentUser?.position}</div>
                   <div className="flex gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={toggleTheme}
+                      className="text-white border-white hover:bg-blue-800 text-xs"
+                      title={theme === 'light' ? 'Темная тема' : 'Светлая тема'}
+                    >
+                      <Icon name={theme === 'light' ? 'Moon' : 'Sun'} size={14} />
+                    </Button>
                     {isAdmin && (
                       <Button
                         size="sm"
