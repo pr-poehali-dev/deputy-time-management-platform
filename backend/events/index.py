@@ -201,6 +201,9 @@ def handle_create_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     cur = conn.cursor()
     
     try:
+        time_value = body_data.get('time') or '00:00'
+        end_time_value = body_data.get('endTime') or None
+        
         cur.execute("""
             INSERT INTO events (title, type, date, time, end_time, end_date, location, vks_link, 
                               description, status, region_name, is_multi_day, created_by)
@@ -210,14 +213,14 @@ def handle_create_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
             body_data.get('title'),
             body_data.get('type'),
             body_data.get('date'),
-            body_data.get('time'),
-            body_data.get('endTime'),
-            body_data.get('endDate'),
-            body_data.get('location'),
-            body_data.get('vksLink'),
-            body_data.get('description'),
+            time_value,
+            end_time_value,
+            body_data.get('endDate') or None,
+            body_data.get('location') or None,
+            body_data.get('vksLink') or None,
+            body_data.get('description') or None,
             body_data.get('status', 'scheduled'),
-            body_data.get('regionName'),
+            body_data.get('regionName') or None,
             body_data.get('isMultiDay', False),
             user['user_id']
         ))
@@ -271,6 +274,9 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     cur = conn.cursor()
     
     try:
+        time_value = body_data.get('time') or '00:00'
+        end_time_value = body_data.get('endTime') or None
+        
         cur.execute("""
             UPDATE events
             SET title = %s, type = %s, date = %s, time = %s, end_time = %s, end_date = %s,
@@ -281,14 +287,14 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
             body_data.get('title'),
             body_data.get('type'),
             body_data.get('date'),
-            body_data.get('time'),
-            body_data.get('endTime'),
-            body_data.get('endDate'),
-            body_data.get('location'),
-            body_data.get('vksLink'),
-            body_data.get('description'),
+            time_value,
+            end_time_value,
+            body_data.get('endDate') or None,
+            body_data.get('location') or None,
+            body_data.get('vksLink') or None,
+            body_data.get('description') or None,
             body_data.get('status'),
-            body_data.get('regionName'),
+            body_data.get('regionName') or None,
             body_data.get('isMultiDay', False),
             event_id
         ))

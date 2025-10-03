@@ -121,9 +121,14 @@ export default function EventDialog({
               <Label htmlFor="type">Тип события *</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: EventType) =>
-                  setFormData({ ...formData, type: value })
-                }
+                onValueChange={(value: EventType) => {
+                  const updates: Partial<ScheduleEvent> = { type: value };
+                  if (value === 'regional-trip') {
+                    updates.time = '00:00';
+                    updates.endTime = '23:59';
+                  }
+                  setFormData({ ...formData, ...updates });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
