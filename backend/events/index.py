@@ -299,15 +299,20 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
             event_id
         ))
         
-        if user.get('role') == 'admin':
-            cur.execute("DELETE FROM event_responsible WHERE event_id = %s", (event_id,))
-            
-            for resp in body_data.get('responsible', []):
-                cur.execute("""
-                    INSERT INTO event_responsible (event_id, user_id)
-                    VALUES (%s, %s)
-                    ON CONFLICT DO NOTHING
-                """, (event_id, resp['id']))
+        cur.execute("DELETE FROM event_responsible WHERE event_id = %s", (event_id,))
+        cur.execute("DELETE FROM event_reminders WHERE event_id = %s", (event_id,))
+        
+        for resp in body_data.get('responsible', []):
+            cur.execute("""
+                INSERT INTO event_responsible (event_id, user_id)
+                VALUES (%s, %s)
+            """, (event_id, resp['id']))
+        
+        for reminder in body_data.get('reminders', []):
+            cur.execute("""
+                INSERT INTO event_reminders (event_id, reminder_text)
+                VALUES (%s, %s)
+            """, (event_id, reminder))
         
         conn.commit()
         cur.close()
@@ -351,6 +356,8 @@ def handle_delete_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     cur = conn.cursor()
     
     try:
+        cur.execute("DELETE FROM event_reminders WHERE event_id = %s", (event_id,))
+        cur.execute("DELETE FROM event_responsible WHERE event_id = %s", (event_id,))
         cur.execute("DELETE FROM events WHERE id = %s", (event_id,))
         conn.commit()
         cur.close()
