@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScheduleEvent, EventType, Person } from '@/types/schedule';
 import {
   Dialog,
@@ -69,6 +69,31 @@ export default function EventDialog({
   const [selectedPersonIds, setSelectedPersonIds] = useState<string[]>(
     event?.responsible.map((p) => p.id) || []
   );
+
+  useEffect(() => {
+    if (event) {
+      setFormData(event);
+      setSelectedPersonIds(event.responsible.map((p) => p.id));
+    } else {
+      setFormData({
+        title: '',
+        type: 'meeting',
+        date: '',
+        time: '',
+        endTime: '',
+        endDate: '',
+        location: '',
+        vksLink: '',
+        description: '',
+        responsible: [],
+        status: 'scheduled',
+        reminders: [],
+        regionName: '',
+        isMultiDay: false,
+      });
+      setSelectedPersonIds([]);
+    }
+  }, [event, open]);
 
   const handleSubmit = () => {
     const selectedPersons = availablePersons.filter((p) =>
