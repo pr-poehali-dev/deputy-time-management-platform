@@ -207,7 +207,7 @@ export default function EventDialog({
                 <Input
                   id="endTime"
                   type="time"
-                  value={formData.endTime}
+                  value={formData.endTime || ''}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                 />
               </div>
@@ -219,7 +219,7 @@ export default function EventDialog({
               <Label htmlFor="regionName">Название региона *</Label>
               <Input
                 id="regionName"
-                value={formData.regionName}
+                value={formData.regionName || ''}
                 onChange={(e) => setFormData({ ...formData, regionName: e.target.value })}
                 placeholder="Например: Московская область"
               />
@@ -229,7 +229,7 @@ export default function EventDialog({
               <Label htmlFor="location">Место проведения</Label>
               <Input
                 id="location"
-                value={formData.location}
+                value={formData.location || ''}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="Например: Зал заседаний №3"
               />
@@ -241,7 +241,7 @@ export default function EventDialog({
               <Label htmlFor="vksLink">Ссылка на ВКС</Label>
               <Input
                 id="vksLink"
-                value={formData.vksLink}
+                value={formData.vksLink || ''}
                 onChange={(e) => setFormData({ ...formData, vksLink: e.target.value })}
                 placeholder="https://meet.gov.ru/room/..."
               />
@@ -252,7 +252,7 @@ export default function EventDialog({
             <Label htmlFor="description">Описание</Label>
             <Textarea
               id="description"
-              value={formData.description}
+              value={formData.description || ''}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
