@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-const eventTypeConfig = {
+const eventTypeConfig: Record<string, { label: string; color: string; icon: string }> = {
   meeting: { label: 'Встреча', color: 'bg-blue-100 text-blue-700', icon: 'Users' },
   vks: { label: 'ВКС', color: 'bg-purple-100 text-purple-700', icon: 'Video' },
   hearing: { label: 'Слушания', color: 'bg-amber-100 text-amber-700', icon: 'Gavel' },

@@ -10,7 +10,7 @@ interface CalendarViewProps {
   onEventClick: (event: ScheduleEvent) => void;
 }
 
-const eventTypeConfig = {
+const eventTypeConfig: Record<string, { label: string; color: string; icon: string }> = {
   meeting: { label: 'Встреча', color: 'bg-blue-500', icon: 'Users' },
   vks: { label: 'ВКС', color: 'bg-purple-500', icon: 'Video' },
   hearing: { label: 'Слушания', color: 'bg-amber-500', icon: 'Gavel' },
