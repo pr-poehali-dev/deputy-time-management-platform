@@ -35,6 +35,7 @@ interface EventDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onEdit: (event: ScheduleEvent) => void;
   onDelete: (id: string) => void;
+  onCancel?: (event: ScheduleEvent) => void;
   canEdit?: boolean;
 }
 
@@ -44,6 +45,7 @@ export default function EventDetailDialog({
   onOpenChange,
   onEdit,
   onDelete,
+  onCancel,
   canEdit = true,
 }: EventDetailDialogProps) {
   if (!event) return null;
@@ -59,6 +61,13 @@ export default function EventDetailDialog({
   const handleDelete = () => {
     onOpenChange(false);
     onDelete(event.id);
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onOpenChange(false);
+      onCancel(event);
+    }
   };
 
   return (
@@ -214,17 +223,30 @@ export default function EventDetailDialog({
         </div>
 
         {canEdit && (
-          <div className="flex gap-2 pt-4 border-t">
-            <Button onClick={handleEdit} className="flex-1 bg-blue-600 hover:bg-blue-700">
-              <Icon name="Pencil" size={18} className="mr-2" />
-              Редактировать
-            </Button>
+          <div className="flex flex-col gap-2 pt-4 border-t">
+            <div className="flex gap-2">
+              <Button onClick={handleEdit} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <Icon name="Calendar" size={18} className="mr-2" />
+                Перенести
+              </Button>
+              {event.status !== 'cancelled' && onCancel && (
+                <Button
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="flex-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                >
+                  <Icon name="XCircle" size={18} className="mr-2" />
+                  Отменить
+                </Button>
+              )}
+            </div>
             <Button
               onClick={handleDelete}
               variant="outline"
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
-              <Icon name="Trash2" size={18} />
+              <Icon name="Trash2" size={18} className="mr-2" />
+              Удалить событие
             </Button>
           </div>
         )}

@@ -268,6 +268,23 @@ const Index = () => {
     }
   };
 
+  const handleCancel = async (event: ScheduleEvent) => {
+    try {
+      await api.updateEvent({ ...event, status: 'cancelled' });
+      toast({
+        title: 'Событие отменено',
+        description: 'Статус события изменен на "Отменено"',
+      });
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleNewEvent = () => {
     setEditingEvent(undefined);
     setDialogOpen(true);
@@ -569,16 +586,25 @@ const Index = () => {
         </div>
 
         <Tabs defaultValue="active" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2 h-11">
-            <TabsTrigger value="active" className="text-base font-body">
-              <Icon name="Calendar" size={18} className="mr-2" />
-              События ({filteredActiveEvents.length})
-            </TabsTrigger>
-            <TabsTrigger value="archive" className="text-base font-body">
-              <Icon name="Archive" size={18} className="mr-2" />
-              Архив ({filteredArchivedEvents.length})
-            </TabsTrigger>
-          </TabsList>
+          {canEdit ? (
+            <TabsList className="grid w-full max-w-md grid-cols-2 h-11">
+              <TabsTrigger value="active" className="text-base font-body">
+                <Icon name="Calendar" size={18} className="mr-2" />
+                События ({filteredActiveEvents.length})
+              </TabsTrigger>
+              <TabsTrigger value="archive" className="text-base font-body">
+                <Icon name="Archive" size={18} className="mr-2" />
+                Архив ({filteredArchivedEvents.length})
+              </TabsTrigger>
+            </TabsList>
+          ) : (
+            <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <Icon name="Calendar" size={24} className="text-blue-600" />
+              <h2 className="text-xl font-bold font-heading">
+                События ({filteredActiveEvents.length})
+              </h2>
+            </div>
+          )}
 
           <TabsContent value="active" className="space-y-4">
             {isAdmin && (
@@ -634,26 +660,28 @@ const Index = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="archive" className="space-y-4">
-            {filteredArchivedEvents.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-                <Icon name="Archive" size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500 text-lg font-body">Архив пуст</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredArchivedEvents.map((event) => (
-                  <div key={event.id} onClick={() => handleEventClick(event)} className="cursor-pointer">
-                    <EventCard
-                      event={event}
-                      onEdit={canEdit ? handleEdit : undefined}
-                      onDelete={canEdit ? handleDelete : undefined}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+          {canEdit && (
+            <TabsContent value="archive" className="space-y-4">
+              {filteredArchivedEvents.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-lg shadow-sm">
+                  <Icon name="Archive" size={48} className="mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500 text-lg font-body">Архив пуст</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredArchivedEvents.map((event) => (
+                    <div key={event.id} onClick={() => handleEventClick(event)} className="cursor-pointer">
+                      <EventCard
+                        event={event}
+                        onEdit={canEdit ? handleEdit : undefined}
+                        onDelete={canEdit ? handleDelete : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
@@ -673,6 +701,7 @@ const Index = () => {
         onOpenChange={setDetailDialogOpen}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onCancel={canEdit ? handleCancel : undefined}
         canEdit={canEdit}
       />
 
