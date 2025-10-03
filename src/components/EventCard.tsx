@@ -19,6 +19,8 @@ const statusConfig = {
   'in-progress': { label: 'В процессе', color: 'bg-green-50 text-green-700 border-green-200' },
   completed: { label: 'Завершено', color: 'bg-gray-100 text-gray-600 border-gray-300' },
   cancelled: { label: 'Отменено', color: 'bg-red-50 text-red-700 border-red-200' },
+  archived: { label: 'Архивировано', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+  pending: { label: 'На подтверждении', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
 };
 
 interface EventCardProps {
