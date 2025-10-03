@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,9 @@ export default function BookingDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Забронировать время</DialogTitle>
+          <DialogDescription>
+            Заявка будет отправлена администратору на подтверждение
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

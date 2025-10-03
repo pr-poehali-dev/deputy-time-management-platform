@@ -99,33 +99,41 @@ const Index = () => {
   };
 
   useEffect(() => {
-    const checkAndArchiveEvents = () => {
+    if (!authenticated) return;
+
+    const checkAndArchiveEvents = async () => {
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentTime = now.toTimeString().slice(0, 5);
 
-      events.forEach(async (event) => {
-        if (event.status === 'archived' || event.status === 'completed' || event.status === 'cancelled') return;
+      const eventsToArchive = events.filter((event) => {
+        if (event.status === 'archived' || event.status === 'completed' || event.status === 'cancelled') {
+          return false;
+        }
 
         const eventEndDate = event.endDate || event.date;
         const eventEndTime = event.endTime || '23:59';
 
-        if (eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime)) {
-          try {
-            await api.updateEvent({ ...event, status: 'archived' });
-            await loadData();
-          } catch (error) {
-            console.error('Failed to archive event:', error);
-          }
-        }
+        return eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime);
       });
+
+      if (eventsToArchive.length > 0) {
+        try {
+          for (const event of eventsToArchive) {
+            await api.updateEvent({ ...event, status: 'archived' });
+          }
+          await loadData();
+        } catch (error) {
+          console.error('Failed to archive events:', error);
+        }
+      }
     };
 
-    const interval = setInterval(checkAndArchiveEvents, 60000);
     checkAndArchiveEvents();
+    const interval = setInterval(checkAndArchiveEvents, 60000);
 
     return () => clearInterval(interval);
-  }, [events]);
+  }, [authenticated]);
 
   const activeEvents = useMemo(
     () => events.filter((e) => e.status !== 'completed' && e.status !== 'cancelled' && e.status !== 'archived'),
@@ -305,6 +313,48 @@ const Index = () => {
     });
   };
 
+  const handleManualArchive = async () => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().slice(0, 5);
+
+    const eventsToArchive = events.filter((event) => {
+      if (event.status === 'archived' || event.status === 'completed' || event.status === 'cancelled') {
+        return false;
+      }
+
+      const eventEndDate = event.endDate || event.date;
+      const eventEndTime = event.endTime || '23:59';
+
+      return eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime);
+    });
+
+    if (eventsToArchive.length === 0) {
+      toast({
+        title: 'Нет событий для архивации',
+        description: 'Все прошедшие события уже в архиве',
+      });
+      return;
+    }
+
+    try {
+      for (const event of eventsToArchive) {
+        await api.updateEvent({ ...event, status: 'archived' });
+      }
+      await loadData();
+      toast({
+        title: 'События архивированы',
+        description: `Перемещено в архив: ${eventsToArchive.length}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка архивации',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleEventClick = (event: ScheduleEvent) => {
     setSelectedEvent(event);
     setDetailDialogOpen(true);
@@ -428,16 +478,29 @@ const Index = () => {
               </SelectContent>
             </Select>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {canEdit && (
-                <Button
-                  onClick={handleNewEvent}
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
-                >
-                  <Icon name="Plus" size={20} className="mr-2" />
-                  Добавить событие
-                </Button>
+                <>
+                  <Button
+                    onClick={handleNewEvent}
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
+                  >
+                    <Icon name="Plus" size={20} className="mr-2" />
+                    <span className="hidden sm:inline">Добавить событие</span>
+                    <span className="sm:hidden">Добавить</span>
+                  </Button>
+                  <Button
+                    onClick={handleManualArchive}
+                    size="lg"
+                    variant="outline"
+                    className="h-11 font-body font-medium"
+                  >
+                    <Icon name="Archive" size={20} className="mr-2" />
+                    <span className="hidden sm:inline">Архивировать прошедшие</span>
+                    <span className="sm:hidden">Архив</span>
+                  </Button>
+                </>
               )}
               {!isAdmin && (
                 <Button
@@ -447,7 +510,8 @@ const Index = () => {
                   className="h-11 font-body font-medium"
                 >
                   <Icon name="Calendar" size={20} className="mr-2" />
-                  Забронировать время
+                  <span className="hidden sm:inline">Забронировать время</span>
+                  <span className="sm:hidden">Бронь</span>
                 </Button>
               )}
             </div>
