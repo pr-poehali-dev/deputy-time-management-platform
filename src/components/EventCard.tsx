@@ -12,6 +12,7 @@ const eventTypeConfig = {
   visit: { label: 'Визит', color: 'bg-red-100 text-red-700', icon: 'MapPin' },
   reception: { label: 'Прием', color: 'bg-cyan-100 text-cyan-700', icon: 'HandshakeIcon' },
   'regional-trip': { label: 'Выезд в регион', color: 'bg-orange-100 text-orange-700', icon: 'Plane' },
+  'pcr-test': { label: 'ПЦР тестирование', color: 'bg-pink-100 text-pink-700', icon: 'TestTube2' },
 };
 
 const statusConfig = {

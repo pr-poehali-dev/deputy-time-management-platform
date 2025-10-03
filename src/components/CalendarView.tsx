@@ -18,6 +18,7 @@ const eventTypeConfig = {
   visit: { label: 'Визит', color: 'bg-red-500', icon: 'MapPin' },
   reception: { label: 'Прием', color: 'bg-cyan-500', icon: 'HandshakeIcon' },
   'regional-trip': { label: 'Выезд в регион', color: 'bg-orange-500', icon: 'Plane' },
+  'pcr-test': { label: 'ПЦР тестирование', color: 'bg-pink-500', icon: 'TestTube2' },
 };
 
 export default function CalendarView({ events, onEventClick }: CalendarViewProps) {

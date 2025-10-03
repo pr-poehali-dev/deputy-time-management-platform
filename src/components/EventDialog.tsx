@@ -38,6 +38,7 @@ const eventTypes = [
   { value: 'visit', label: 'Визит' },
   { value: 'reception', label: 'Прием' },
   { value: 'regional-trip', label: 'Выезд в регион' },
+  { value: 'pcr-test', label: 'ПЦР тестирование' },
 ];
 
 export default function EventDialog({
@@ -148,10 +149,25 @@ export default function EventDialog({
                 value={formData.type}
                 onValueChange={(value: EventType) => {
                   const updates: Partial<ScheduleEvent> = { type: value };
+                  
                   if (value === 'regional-trip') {
                     updates.time = '00:00';
                     updates.endTime = '23:59';
+                  } else if (value === 'committee') {
+                    updates.time = '12:00';
+                    updates.endTime = '16:00';
+                  } else if (value === 'pcr-test') {
+                    updates.time = '08:00';
+                    updates.endTime = '11:00';
+                    
+                    const currentDate = formData.date ? new Date(formData.date) : new Date();
+                    const dayOfWeek = currentDate.getDay();
+                    const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek;
+                    const nextMonday = new Date(currentDate);
+                    nextMonday.setDate(currentDate.getDate() + daysUntilMonday);
+                    updates.date = nextMonday.toISOString().split('T')[0];
                   }
+                  
                   setFormData({ ...formData, ...updates });
                 }}
               >
@@ -169,7 +185,12 @@ export default function EventDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">{formData.type === 'regional-trip' ? 'Дата начала *' : 'Дата *'}</Label>
+              <Label htmlFor="date">
+                {formData.type === 'regional-trip' ? 'Дата начала *' : 'Дата *'}
+                {formData.type === 'pcr-test' && (
+                  <span className="text-xs text-gray-500 ml-2">(Понедельник, 08:00-11:00)</span>
+                )}
+              </Label>
               <Input
                 id="date"
                 type="date"

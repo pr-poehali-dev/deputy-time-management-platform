@@ -515,6 +515,7 @@ const Index = () => {
                 <SelectItem value="visit">Визит</SelectItem>
                 <SelectItem value="reception">Прием</SelectItem>
                 <SelectItem value="regional-trip">Выезд в регион</SelectItem>
+                <SelectItem value="pcr-test">ПЦР тестирование</SelectItem>
               </SelectContent>
             </Select>
 

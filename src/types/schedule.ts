@@ -1,4 +1,4 @@
-export type EventType = 'meeting' | 'vks' | 'hearing' | 'committee' | 'visit' | 'reception' | 'regional-trip';
+export type EventType = 'meeting' | 'vks' | 'hearing' | 'committee' | 'visit' | 'reception' | 'regional-trip' | 'pcr-test';
 export type EventStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled' | 'archived' | 'pending';
 export type UserRole = 'admin' | 'responsible' | 'guest';
 
