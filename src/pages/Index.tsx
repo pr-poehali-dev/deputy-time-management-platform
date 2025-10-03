@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ScheduleEvent, EventType, Person } from '../types/schedule';
+import { ScheduleEvent, EventType, Person, BookingRequest } from '../types/schedule';
 import EventCard from '../components/EventCard';
 import EventDialog from '../components/EventDialog';
 import EventDetailDialog from '../components/EventDetailDialog';
@@ -7,6 +7,8 @@ import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import LoginPage from '../components/LoginPage';
 import UserManagementDialog from '../components/UserManagementDialog';
+import BookingDialog from '../components/BookingDialog';
+import BookingRequests from '../components/BookingRequests';
 import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -37,6 +39,8 @@ const Index = () => {
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'grid'>('timeline');
   const [userManagementOpen, setUserManagementOpen] = useState(false);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>([]);
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
 
@@ -94,13 +98,42 @@ const Index = () => {
     setUsers([]);
   };
 
+  useEffect(() => {
+    const checkAndArchiveEvents = () => {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const currentTime = now.toTimeString().slice(0, 5);
+
+      events.forEach(async (event) => {
+        if (event.status === 'archived' || event.status === 'completed' || event.status === 'cancelled') return;
+
+        const eventEndDate = event.endDate || event.date;
+        const eventEndTime = event.endTime || '23:59';
+
+        if (eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime)) {
+          try {
+            await api.updateEvent({ ...event, status: 'archived' });
+            await loadData();
+          } catch (error) {
+            console.error('Failed to archive event:', error);
+          }
+        }
+      });
+    };
+
+    const interval = setInterval(checkAndArchiveEvents, 60000);
+    checkAndArchiveEvents();
+
+    return () => clearInterval(interval);
+  }, [events]);
+
   const activeEvents = useMemo(
-    () => events.filter((e) => e.status !== 'completed' && e.status !== 'cancelled'),
+    () => events.filter((e) => e.status !== 'completed' && e.status !== 'cancelled' && e.status !== 'archived'),
     [events]
   );
 
   const archivedEvents = useMemo(
-    () => events.filter((e) => e.status === 'completed' || e.status === 'cancelled'),
+    () => events.filter((e) => e.status === 'completed' || e.status === 'cancelled' || e.status === 'archived'),
     [events]
   );
 
@@ -159,7 +192,7 @@ const Index = () => {
       }
 
       if (editingEvent) {
-        await api.updateEvent(eventData);
+        await api.updateEvent({ ...editingEvent, ...eventData });
         toast({
           title: 'Событие обновлено',
           description: 'Изменения успешно сохранены',
@@ -172,6 +205,7 @@ const Index = () => {
         });
       }
       setEditingEvent(undefined);
+      setDialogOpen(false);
       await loadData();
     } catch (error: any) {
       toast({
@@ -207,6 +241,68 @@ const Index = () => {
   const handleNewEvent = () => {
     setEditingEvent(undefined);
     setDialogOpen(true);
+  };
+
+  const handleBookingSubmit = (request: BookingRequest) => {
+    setBookingRequests((prev) => [...prev, request]);
+    toast({
+      title: 'Заявка отправлена',
+      description: 'Ваша заявка ожидает подтверждения администратора',
+    });
+  };
+
+  const handleApproveBooking = async (requestId: string) => {
+    const request = bookingRequests.find((r) => r.id === requestId);
+    if (!request) return;
+
+    try {
+      const eventData: Partial<ScheduleEvent> = {
+        title: request.title,
+        type: 'meeting',
+        date: request.date,
+        time: request.time,
+        endTime: request.endTime,
+        description: request.description,
+        responsible: [request.requestedBy],
+        status: 'scheduled',
+        bookingRequestId: requestId,
+      };
+
+      await api.createEvent(eventData);
+      
+      setBookingRequests((prev) =>
+        prev.map((r) =>
+          r.id === requestId ? { ...r, status: 'approved', approvedBy: currentUser?.full_name, approvedAt: new Date().toISOString() } : r
+        )
+      );
+
+      toast({
+        title: 'Заявка одобрена',
+        description: 'Событие добавлено в график',
+      });
+
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRejectBooking = (requestId: string) => {
+    setBookingRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId ? { ...r, status: 'rejected' } : r
+      )
+    );
+
+    toast({
+      title: 'Заявка отклонена',
+      description: 'Бронирование времени отклонено',
+      variant: 'destructive',
+    });
   };
 
   const handleEventClick = (event: ScheduleEvent) => {
@@ -332,16 +428,29 @@ const Index = () => {
               </SelectContent>
             </Select>
 
-            {canEdit && (
-              <Button
-                onClick={handleNewEvent}
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
-              >
-                <Icon name="Plus" size={20} className="mr-2" />
-                Добавить событие
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {canEdit && (
+                <Button
+                  onClick={handleNewEvent}
+                  size="lg"
+                  className="bg-blue-600 hover:bg-blue-700 h-11 font-body font-medium"
+                >
+                  <Icon name="Plus" size={20} className="mr-2" />
+                  Добавить событие
+                </Button>
+              )}
+              {!isAdmin && (
+                <Button
+                  onClick={() => setBookingDialogOpen(true)}
+                  size="lg"
+                  variant="outline"
+                  className="h-11 font-body font-medium"
+                >
+                  <Icon name="Calendar" size={20} className="mr-2" />
+                  Забронировать время
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2">
@@ -385,6 +494,16 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="active" className="space-y-4">
+            {isAdmin && (
+              <BookingRequests
+                requests={bookingRequests}
+                onApprove={handleApproveBooking}
+                onReject={handleRejectBooking}
+                currentUser={currentUser ? { id: String(currentUser.id), name: currentUser.full_name, position: currentUser.position } : { id: '', name: '', position: '' }}
+                isAdmin={isAdmin}
+              />
+            )}
+
             {filteredActiveEvents.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-lg shadow-sm">
                 <Icon name="CalendarOff" size={48} className="mx-auto text-gray-300 mb-4" />
@@ -473,6 +592,15 @@ const Index = () => {
         <UserManagementDialog
           open={userManagementOpen}
           onOpenChange={setUserManagementOpen}
+        />
+      )}
+
+      {!isAdmin && currentUser && (
+        <BookingDialog
+          open={bookingDialogOpen}
+          onOpenChange={setBookingDialogOpen}
+          currentUser={{ id: String(currentUser.id), name: currentUser.full_name, position: currentUser.position }}
+          onSubmit={handleBookingSubmit}
         />
       )}
 
