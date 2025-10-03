@@ -126,25 +126,31 @@ export default function EventCard({ event, onEdit, onDelete }: EventCardProps) {
           </div>
         )}
 
-        <div className="flex gap-2 pt-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            onClick={() => onEdit?.(event)}
-          >
-            <Icon name="Pencil" size={16} className="mr-1" />
-            Изменить
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => onDelete?.(event.id)}
-          >
-            <Icon name="Trash2" size={16} />
-          </Button>
-        </div>
+        {(onEdit || onDelete) && (
+          <div className="flex gap-2 pt-2">
+            {onEdit && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={() => onEdit(event)}
+              >
+                <Icon name="Pencil" size={16} className="mr-1" />
+                Изменить
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => onDelete(event.id)}
+              >
+                <Icon name="Trash2" size={16} />
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

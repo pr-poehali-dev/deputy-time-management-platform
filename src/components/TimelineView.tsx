@@ -6,11 +6,12 @@ import Icon from '@/components/ui/icon';
 
 interface TimelineViewProps {
   events: ScheduleEvent[];
-  onEdit: (event: ScheduleEvent) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (event: ScheduleEvent) => void;
+  onDelete?: (id: string) => void;
+  onEventClick?: (event: ScheduleEvent) => void;
 }
 
-export default function TimelineView({ events, onEdit, onDelete }: TimelineViewProps) {
+export default function TimelineView({ events, onEdit, onDelete, onEventClick }: TimelineViewProps) {
   const groupedEvents = useMemo(() => {
     const groups = new Map<string, ScheduleEvent[]>();
     
@@ -115,12 +116,17 @@ export default function TimelineView({ events, onEdit, onDelete }: TimelineViewP
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pl-8 relative">
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 via-blue-200 to-transparent" />
             {dateEvents.map((event) => (
-              <EventCard
+              <div
                 key={event.id}
-                event={event}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
+                onClick={() => !onEdit && !onDelete && onEventClick?.(event)}
+                className={!onEdit && !onDelete ? 'cursor-pointer' : ''}
+              >
+                <EventCard
+                  event={event}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              </div>
             ))}
           </div>
         </div>

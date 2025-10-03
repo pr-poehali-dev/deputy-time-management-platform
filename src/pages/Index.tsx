@@ -606,8 +606,9 @@ const Index = () => {
                 {viewMode === 'timeline' && (
                   <TimelineView
                     events={filteredActiveEvents}
-                    onEdit={canEdit ? handleEdit : handleEventClick}
-                    onDelete={canEdit ? handleDelete : () => {}}
+                    onEdit={canEdit ? handleEdit : undefined}
+                    onDelete={canEdit ? handleDelete : undefined}
+                    onEventClick={!canEdit ? handleEventClick : undefined}
                   />
                 )}
                 {viewMode === 'calendar' && (

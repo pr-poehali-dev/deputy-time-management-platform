@@ -85,11 +85,22 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
     e.preventDefault();
     
     try {
-      await api.createUser(formData);
-      toast({
-        title: 'Пользователь создан',
-        description: 'Новый пользователь добавлен в систему',
-      });
+      if (editingUser) {
+        await api.updateUser({
+          id: editingUser.id,
+          ...formData,
+        });
+        toast({
+          title: 'Пользователь обновлен',
+          description: 'Данные успешно сохранены',
+        });
+      } else {
+        await api.createUser(formData);
+        toast({
+          title: 'Пользователь создан',
+          description: 'Новый пользователь добавлен в систему',
+        });
+      }
       
       resetForm();
       await loadUsers();
@@ -102,9 +113,39 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
     }
   };
 
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      login: user.login || '',
+      email: user.email,
+      password: '',
+      full_name: user.full_name,
+      position: user.position,
+      role: user.role,
+    });
+    setShowForm(true);
+  };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+      return;
+    }
 
-
+    try {
+      await api.deleteUser(id);
+      toast({
+        title: 'Пользователь удален',
+        description: 'Пользователь удален из системы',
+      });
+      await loadUsers();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -158,6 +199,7 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
                         <TableHead className="font-body hidden sm:table-cell">Email</TableHead>
                         <TableHead className="font-body hidden md:table-cell">Должность</TableHead>
                         <TableHead className="font-body">Роль</TableHead>
+                        <TableHead className="font-body text-right">Действия</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -179,6 +221,25 @@ export default function UserManagementDialog({ open, onOpenChange }: UserManagem
                             >
                               {user.role === 'admin' ? 'Администратор' : 'Пользователь'}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(user)}
+                              >
+                                <Icon name="Pencil" size={16} />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDelete(user.id)}
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
+                            </div>
                           </TableCell>
 
                         </TableRow>
