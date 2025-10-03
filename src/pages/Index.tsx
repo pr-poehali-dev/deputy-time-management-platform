@@ -99,12 +99,15 @@ const Index = () => {
   };
 
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || events.length === 0) return;
 
     const checkAndArchiveEvents = async () => {
       const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      const currentTime = now.toTimeString().slice(0, 5);
+      // Используем UTC дату и время для синхронизации с сервером
+      const today = now.toISOString().split('T')[0]; // UTC дата
+      const currentTime = now.toISOString().split('T')[1].substring(0, 5); // UTC время
+
+      console.log('Checking archive (UTC):', { today, currentTime, localTime: now.toLocaleString('ru-RU') });
 
       const eventsToArchive = events.filter((event) => {
         if (event.status === 'archived' || event.status === 'completed' || event.status === 'cancelled') {
@@ -112,15 +115,34 @@ const Index = () => {
         }
 
         const eventEndDate = event.endDate || event.date;
-        const eventEndTime = event.endTime || '23:59';
+        // Если нет времени окончания, считаем что событие закончилось в конце дня
+        const eventEndTime = event.endTime ? event.endTime.substring(0, 5) : '23:59';
 
-        return eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime);
+        // Событие должно быть архивировано если:
+        // 1. Дата окончания СТРОГО раньше сегодня (например, 2025-10-03 < 2025-10-04)
+        // 2. Дата окончания = сегодня И время окончания уже прошло
+        const shouldArchive = eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime);
+        
+        if (shouldArchive) {
+          console.log('Archiving event:', { 
+            title: event.title, 
+            eventEndDate, 
+            eventEndTime, 
+            today, 
+            currentTime 
+          });
+        }
+
+        return shouldArchive;
       });
 
       if (eventsToArchive.length > 0) {
+        console.log(`Archiving ${eventsToArchive.length} events`);
         try {
           for (const event of eventsToArchive) {
-            await api.updateEvent({ ...event, status: 'archived' });
+            const updateData = { ...event, status: 'archived' };
+            console.log('Sending update:', updateData);
+            await api.updateEvent(updateData);
           }
           await loadData();
         } catch (error) {
@@ -133,7 +155,7 @@ const Index = () => {
     const interval = setInterval(checkAndArchiveEvents, 60000);
 
     return () => clearInterval(interval);
-  }, [authenticated]);
+  }, [authenticated, events.length]);
 
   const activeEvents = useMemo(
     () => events.filter((e) => e.status !== 'completed' && e.status !== 'cancelled' && e.status !== 'archived'),
@@ -315,8 +337,9 @@ const Index = () => {
 
   const handleManualArchive = async () => {
     const now = new Date();
+    // Используем UTC дату и время для синхронизации с сервером
     const today = now.toISOString().split('T')[0];
-    const currentTime = now.toTimeString().slice(0, 5);
+    const currentTime = now.toISOString().split('T')[1].substring(0, 5);
 
     const eventsToArchive = events.filter((event) => {
       if (event.status === 'archived' || event.status === 'completed' || event.status === 'cancelled') {
@@ -324,7 +347,7 @@ const Index = () => {
       }
 
       const eventEndDate = event.endDate || event.date;
-      const eventEndTime = event.endTime || '23:59';
+      const eventEndTime = event.endTime ? event.endTime.substring(0, 5) : '23:59';
 
       return eventEndDate < today || (eventEndDate === today && eventEndTime < currentTime);
     });

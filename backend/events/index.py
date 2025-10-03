@@ -263,6 +263,8 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     body_data = json.loads(event.get('body', '{}'))
     event_id = body_data.get('id')
     
+    print(f"UPDATE EVENT: id={event_id}, data={body_data}")
+    
     if not event_id:
         return {
             'statusCode': 400,
@@ -274,45 +276,56 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
     cur = conn.cursor()
     
     try:
-        time_value = body_data.get('time') or '00:00'
-        end_time_value = body_data.get('endTime') or None
-        
+        # Используем COALESCE для сохранения существующих значений если новое значение NULL
         cur.execute("""
             UPDATE events
-            SET title = %s, type = %s, date = %s, time = %s, end_time = %s, end_date = %s,
-                location = %s, vks_link = %s, description = %s, status = %s,
-                region_name = %s, is_multi_day = %s, updated_at = CURRENT_TIMESTAMP
+            SET title = COALESCE(%s, title),
+                type = COALESCE(%s, type),
+                date = COALESCE(%s, date),
+                time = COALESCE(%s, time),
+                end_time = COALESCE(%s, end_time),
+                end_date = COALESCE(%s, end_date),
+                location = COALESCE(%s, location),
+                vks_link = COALESCE(%s, vks_link),
+                description = COALESCE(%s, description),
+                status = COALESCE(%s, status),
+                region_name = COALESCE(%s, region_name),
+                is_multi_day = COALESCE(%s, is_multi_day),
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
         """, (
             body_data.get('title'),
             body_data.get('type'),
             body_data.get('date'),
-            time_value,
-            end_time_value,
-            body_data.get('endDate') or None,
-            body_data.get('location') or None,
-            body_data.get('vksLink') or None,
-            body_data.get('description') or None,
+            body_data.get('time'),
+            body_data.get('endTime'),
+            body_data.get('endDate'),
+            body_data.get('location'),
+            body_data.get('vksLink'),
+            body_data.get('description'),
             body_data.get('status'),
-            body_data.get('regionName') or None,
-            body_data.get('isMultiDay', False),
+            body_data.get('regionName'),
+            body_data.get('isMultiDay'),
             event_id
         ))
         
-        cur.execute("DELETE FROM event_responsible WHERE event_id = %s", (event_id,))
-        cur.execute("DELETE FROM event_reminders WHERE event_id = %s", (event_id,))
+        # Обновляем ответственных только если они переданы
+        if 'responsible' in body_data:
+            cur.execute("DELETE FROM event_responsible WHERE event_id = %s", (event_id,))
+            for resp in body_data.get('responsible', []):
+                cur.execute("""
+                    INSERT INTO event_responsible (event_id, user_id)
+                    VALUES (%s, %s)
+                """, (event_id, resp['id']))
         
-        for resp in body_data.get('responsible', []):
-            cur.execute("""
-                INSERT INTO event_responsible (event_id, user_id)
-                VALUES (%s, %s)
-            """, (event_id, resp['id']))
-        
-        for reminder in body_data.get('reminders', []):
-            cur.execute("""
-                INSERT INTO event_reminders (event_id, reminder_text)
-                VALUES (%s, %s)
-            """, (event_id, reminder))
+        # Обновляем напоминания только если они переданы
+        if 'reminders' in body_data:
+            cur.execute("DELETE FROM event_reminders WHERE event_id = %s", (event_id,))
+            for reminder in body_data.get('reminders', []):
+                cur.execute("""
+                    INSERT INTO event_reminders (event_id, reminder_text)
+                    VALUES (%s, %s)
+                """, (event_id, reminder))
         
         conn.commit()
         cur.close()
@@ -324,6 +337,9 @@ def handle_update_event(event: Dict[str, Any], user: Dict[str, Any]) -> Dict[str
             'body': json.dumps({'message': 'Event updated'})
         }
     except Exception as e:
+        print(f"ERROR updating event: {str(e)}")
+        import traceback
+        traceback.print_exc()
         conn.rollback()
         cur.close()
         conn.close()
